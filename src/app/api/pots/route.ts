@@ -1,60 +1,139 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { createMockPot } from '@/lib/mock-storage'
+import { CreatePotRequestV2 } from '@/lib/types-v2'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { name, objective_cents, fixed_amount_cents, ends_at, pin } = body
+    const body: CreatePotRequestV2 = await request.json()
 
-    // Validation des données
-    if (!name?.trim() || !objective_cents || !fixed_amount_cents || !ends_at) {
+    // Validation des champs requis
+    if (!body.name?.trim()) {
       return NextResponse.json(
-        { error: 'Données manquantes ou invalides' },
+        { error: 'Le nom de la cagnotte est requis' },
         { status: 400 }
       )
     }
 
-    if (objective_cents <= 0 || fixed_amount_cents <= 0) {
+    if (!body.objective_cents || body.objective_cents <= 0) {
       return NextResponse.json(
-        { error: 'Les montants doivent être positifs' },
+        { error: 'L\'objectif doit être supérieur à 0' },
         { status: 400 }
       )
     }
 
-    // Mode mock si Supabase n'est pas configuré ou pour forcer le mode mock
+    if (!body.fixed_amount_cents || body.fixed_amount_cents <= 0) {
+      return NextResponse.json(
+        { error: 'Le montant fixe doit être supérieur à 0' },
+        { status: 400 }
+      )
+    }
+
+    if (!body.ends_at) {
+      return NextResponse.json(
+        { error: 'La date de fin est requise' },
+        { status: 400 }
+      )
+    }
+
+    // Validation spécifique au mode de montant
+    if (body.amount_mode === 'TIERS') {
+      if (!body.tiers || body.tiers.length === 0) {
+        return NextResponse.json(
+          { error: 'Au moins un palier doit être défini pour le mode TIERS' },
+          { status: 400 }
+        )
+      }
+      
+      // Vérifier que les paliers sont valides
+      for (const tier of body.tiers) {
+        if (tier.amount_cents < 10) {
+          return NextResponse.json(
+            { error: 'Les paliers doivent être d\'au moins 0,10 €' },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
+    // Validation des paramètres de solidarité
+    if (body.solidarity_threshold_cents !== undefined) {
+      if (body.solidarity_threshold_cents < 0) {
+        return NextResponse.json(
+          { error: 'Le seuil de solidarité ne peut pas être négatif' },
+          { status: 400 }
+        )
+      }
+      
+      if (!body.solidarity_rate || body.solidarity_rate < 0 || body.solidarity_rate > 1) {
+        return NextResponse.json(
+          { error: 'Le taux de solidarité doit être entre 0 et 1' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validation des paramètres de réserve
+    if (body.reserve_enabled && (!body.reserve_target_cents || body.reserve_target_cents <= 0)) {
+      return NextResponse.json(
+        { error: 'La cible de réserve doit être supérieure à 0' },
+        { status: 400 }
+      )
+    }
+
+    // Validation de la durée des cycles
+    if (body.frequency === 'RECURRING') {
+      if (!body.cycle_duration_days || body.cycle_duration_days < 1 || body.cycle_duration_days > 365) {
+        return NextResponse.json(
+          { error: 'La durée des cycles doit être entre 1 et 365 jours' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Mode mock si Supabase n'est pas configuré
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://dummy.supabase.co' || process.env.FORCE_MOCK === 'true') {
-      const mockSlug = Math.random().toString(36).substring(2, 10)
-      const mockOwnerToken = Math.random().toString(36).substring(2, 20)
+      // Générer un slug et un token uniques
+      const slug = Math.random().toString(36).substring(2, 10)
+      const ownerToken = Math.random().toString(36).substring(2, 20)
       
-      // Créer la cagnotte dans le stockage mock
-      const mockPot = createMockPot({
-        slug: mockSlug,
-        name,
-        objective_cents,
-        fixed_amount_cents,
-        ends_at: ends_at.includes('T') ? new Date(ends_at).toISOString() : new Date(ends_at + 'T23:59:59.000Z').toISOString(),
-        owner_token: mockOwnerToken,
-        pin: pin || null,
+      const mockPot = {
+        id: `mock-${Date.now()}`,
+        slug,
+        name: body.name,
+        objective_cents: body.objective_cents,
+        fixed_amount_cents: body.fixed_amount_cents,
+        ends_at: body.ends_at,
+        owner_token: ownerToken,
+        pin: body.pin || null,
         status: 'OPEN',
-        closed_at: null,
-      })
-      
-      const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/c/${mockSlug}`
-      const adminUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/c/${mockSlug}?owner=${mockOwnerToken}`
+        created_at: new Date().toISOString(),
+        
+        // Nouvelles propriétés V2
+        amount_mode: body.amount_mode || 'FIXED',
+        frequency: body.frequency || 'ONE_TIME',
+        tiers: body.tiers || null,
+        solidarity_threshold_cents: body.solidarity_threshold_cents || null,
+        solidarity_rate: body.solidarity_rate || 0.1,
+        reserve_enabled: body.reserve_enabled || false,
+        reserve_target_cents: body.reserve_target_cents || null,
+        reserve_balance_cents: 0,
+        current_cycle: 1,
+        cycle_duration_days: body.cycle_duration_days || null
+      }
 
       return NextResponse.json({
         id: mockPot.id,
         slug: mockPot.slug,
-        publicUrl,
-        adminUrl,
-        ownerToken: mockOwnerToken,
+        ownerToken: mockPot.owner_token,
+        publicUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/c/${mockPot.slug}`,
+        adminUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/c/${mockPot.slug}?owner=${mockPot.owner_token}`
       })
     }
 
     // Mode Supabase réel
     const { data: slugData, error: slugError } = await supabase.rpc('generate_unique_slug')
     if (slugError) {
+      console.error('Erreur lors de la génération du slug:', slugError)
       return NextResponse.json(
         { error: 'Erreur lors de la génération du slug' },
         { status: 500 }
@@ -63,43 +142,74 @@ export async function POST(request: NextRequest) {
 
     const { data: tokenData, error: tokenError } = await supabase.rpc('generate_unique_token')
     if (tokenError) {
+      console.error('Erreur lors de la génération du token:', tokenError)
       return NextResponse.json(
         { error: 'Erreur lors de la génération du token' },
         { status: 500 }
       )
     }
 
-    const { data: pot, error } = await supabase
+    // Créer la cagnotte avec les nouveaux champs V2
+    const { data: pot, error: potError } = await supabase
       .from('pots')
       .insert({
         slug: slugData,
-        name: name.trim(),
-        objective_cents,
-        fixed_amount_cents,
-        ends_at: ends_at.includes('T') ? new Date(ends_at).toISOString() : new Date(ends_at + 'T23:59:59.000Z').toISOString(),
+        name: body.name,
+        objective_cents: body.objective_cents,
+        fixed_amount_cents: body.fixed_amount_cents,
+        ends_at: body.ends_at,
         owner_token: tokenData,
-        pin: pin || null,
-        status: 'OPEN',
+        pin: body.pin || null,
+        
+        // Nouvelles propriétés V2
+        amount_mode: body.amount_mode || 'FIXED',
+        frequency: body.frequency || 'ONE_TIME',
+        tiers: body.tiers || null,
+        solidarity_threshold_cents: body.solidarity_threshold_cents || null,
+        solidarity_rate: body.solidarity_rate || 0.1,
+        reserve_enabled: body.reserve_enabled || false,
+        reserve_target_cents: body.reserve_target_cents || null,
+        reserve_balance_cents: 0,
+        current_cycle: 1,
+        cycle_duration_days: body.cycle_duration_days || null
       })
       .select()
       .single()
 
-    if (error) {
+    if (potError) {
+      console.error('Erreur lors de la création de la cagnotte:', potError)
       return NextResponse.json(
         { error: 'Erreur lors de la création de la cagnotte' },
         { status: 500 }
       )
     }
 
-    const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL}/c/${pot.slug}`
-    const adminUrl = `${process.env.NEXT_PUBLIC_APP_URL}/c/${pot.slug}?owner=${pot.owner_token}`
+    // Si c'est une cagnotte récurrente, créer le premier cycle
+    if (body.frequency === 'RECURRING') {
+      const { error: cycleError } = await supabase
+        .from('cycles')
+        .insert({
+          pot_id: pot.id,
+          cycle_number: 1,
+          objective_cents: body.objective_cents,
+          total_collected_cents: 0,
+          contributors_count: 0,
+          started_at: new Date().toISOString(),
+          status: 'ACTIVE'
+        })
+
+      if (cycleError) {
+        console.error('Erreur lors de la création du cycle:', cycleError)
+        // Ne pas échouer complètement, juste logger l'erreur
+      }
+    }
 
     return NextResponse.json({
       id: pot.id,
       slug: pot.slug,
-      publicUrl,
-      adminUrl,
       ownerToken: pot.owner_token,
+      publicUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/c/${pot.slug}`,
+      adminUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/c/${pot.slug}?owner=${pot.owner_token}`
     })
   } catch (error) {
     console.error('Erreur lors de la création de la cagnotte:', error)
