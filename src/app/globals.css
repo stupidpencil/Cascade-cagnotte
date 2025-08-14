@@ -2,55 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Amélioration du contraste pour les champs de saisie */
-@layer components {
-  .input-high-contrast {
-    @apply text-gray-900;
-    @apply placeholder-gray-600;
-    @apply font-medium;
-  }
-  
-  .label-high-contrast {
-    @apply text-gray-800;
-    @apply font-semibold;
-  }
-  
-  .text-high-contrast {
-    @apply text-gray-900;
-  }
-}
-
-/* Styles pour les composants V2 */
-.amount-mode-card {
-  @apply border-2 transition-all duration-200;
-}
-
-.amount-mode-card.selected {
-  @apply border-blue-500 bg-blue-50 shadow-md;
-}
-
-.amount-mode-card:not(.selected) {
-  @apply border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm;
-}
-
-.tier-input {
-  @apply w-20 px-2 py-1 text-sm border border-gray-300 rounded;
-  @apply focus:outline-none focus:border-blue-500;
-  @apply text-gray-900 font-medium;
-}
-
-.frequency-button {
-  @apply px-3 py-2 text-sm rounded-lg border transition-colors;
-}
-
-.frequency-button.selected {
-  @apply border-blue-500 bg-blue-50 text-blue-700 font-medium;
-}
-
-.frequency-button:not(.selected) {
-  @apply border-gray-200 bg-white text-gray-700 hover:border-gray-300;
-}
-
 /* Override des styles pour forcer le contraste */
 input, textarea, select {
   color: #111827 !important; /* gray-900 */
