@@ -5,18 +5,18 @@
 /* Amélioration du contraste pour les champs de saisie */
 @layer components {
   .input-high-contrast {
-    @apply text-gray-900 !important;
-    @apply placeholder-gray-600 !important;
-    @apply font-medium !important;
+    @apply text-gray-900;
+    @apply placeholder-gray-600;
+    @apply font-medium;
   }
   
   .label-high-contrast {
-    @apply text-gray-800 !important;
-    @apply font-semibold !important;
+    @apply text-gray-800;
+    @apply font-semibold;
   }
   
   .text-high-contrast {
-    @apply text-gray-900 !important;
+    @apply text-gray-900;
   }
 }
 
