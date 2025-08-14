@@ -47,6 +47,17 @@ export async function GET(
         contributors_count: contributorsCount,
         estimated_refund_if_i_pay_now_cents: estimatedRefundCents,
         current_surplus_cents: currentSurplusCents,
+        // Champs V2
+        amount_mode: mockPot.amount_mode || 'FIXED',
+        frequency: mockPot.frequency || 'ONE_TIME',
+        tiers: mockPot.tiers || undefined,
+        solidarity_threshold_cents: mockPot.solidarity_threshold_cents || undefined,
+        solidarity_rate: mockPot.solidarity_rate || 0.1,
+        reserve_enabled: mockPot.reserve_enabled || false,
+        reserve_target_cents: mockPot.reserve_target_cents || undefined,
+        reserve_balance_cents: mockPot.reserve_balance_cents || 0,
+        current_cycle: mockPot.current_cycle || 1,
+        cycle_duration_days: mockPot.cycle_duration_days || undefined,
       })
     }
 
@@ -95,6 +106,17 @@ export async function GET(
       contributors_count: contributorsCount,
       estimated_refund_if_i_pay_now_cents: estimatedRefundCents,
       current_surplus_cents: currentSurplusCents,
+      // Champs V2
+      amount_mode: pot.amount_mode || 'FIXED',
+      frequency: pot.frequency || 'ONE_TIME',
+      tiers: pot.tiers || undefined,
+      solidarity_threshold_cents: pot.solidarity_threshold_cents || undefined,
+      solidarity_rate: pot.solidarity_rate || 0.1,
+      reserve_enabled: pot.reserve_enabled || false,
+      reserve_target_cents: pot.reserve_target_cents || undefined,
+      reserve_balance_cents: pot.reserve_balance_cents || 0,
+      current_cycle: pot.current_cycle || 1,
+      cycle_duration_days: pot.cycle_duration_days || undefined,
     })
   } catch (error) {
     console.error('Erreur lors de la récupération de la cagnotte:', error)

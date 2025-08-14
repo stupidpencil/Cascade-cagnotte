@@ -11,6 +11,17 @@ interface MockPot {
   status: 'OPEN' | 'CLOSED'
   closed_at: string | null
   created_at: string
+  // Champs V2
+  amount_mode?: 'FIXED' | 'TIERS' | 'FREE'
+  frequency?: 'ONE_TIME' | 'RECURRING'
+  tiers?: Array<{ amount_cents: number; label: string }>
+  solidarity_threshold_cents?: number
+  solidarity_rate?: number
+  reserve_enabled?: boolean
+  reserve_target_cents?: number
+  reserve_balance_cents?: number
+  current_cycle?: number
+  cycle_duration_days?: number
 }
 
 interface MockContribution {
@@ -129,6 +140,17 @@ export function createMockPot(potData: Omit<MockPot, 'id' | 'created_at'>): Mock
     ...potData,
     id: `mock_${Date.now()}`,
     created_at: new Date().toISOString(),
+    // Valeurs par défaut pour les champs V2
+    amount_mode: potData.amount_mode || 'FIXED',
+    frequency: potData.frequency || 'ONE_TIME',
+    tiers: potData.tiers || undefined,
+    solidarity_threshold_cents: potData.solidarity_threshold_cents || undefined,
+    solidarity_rate: potData.solidarity_rate || 0.1,
+    reserve_enabled: potData.reserve_enabled || false,
+    reserve_target_cents: potData.reserve_target_cents || undefined,
+    reserve_balance_cents: potData.reserve_balance_cents || 0,
+    current_cycle: potData.current_cycle || 1,
+    cycle_duration_days: potData.cycle_duration_days || undefined,
   }
   
   mockPots.set(potData.slug, newPot)

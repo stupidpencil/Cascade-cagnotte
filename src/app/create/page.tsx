@@ -22,12 +22,13 @@ export default function CreatePage() {
   // Champs de base
   const [name, setName] = useState('')
   const [objective, setObjective] = useState('')
-  const [fixedAmount, setFixedAmount] = useState('')
   const [endsAt, setEndsAt] = useState('')
   const [pin, setPin] = useState('')
 
   // Nouvelles propriétés V2
   const [amountMode, setAmountMode] = useState<AmountMode>('FIXED')
+  const [fixedAmount, setFixedAmount] = useState('20.00') // Montant par défaut pour le mode FIXED
+  const [suggestedAmount, setSuggestedAmount] = useState('20.00') // Montant suggéré pour le mode FREE
   const [tiers, setTiers] = useState<Tier[]>([
     { amount_cents: 500, label: '5€' },
     { amount_cents: 1000, label: '10€' },
@@ -51,21 +52,47 @@ export default function CreatePage() {
     setError('')
 
     try {
-      // Validation
+      // Validation de base
       if (!name.trim()) throw new Error('Le nom de la cagnotte est requis')
       if (!objective || parseFloat(objective) <= 0) throw new Error('L\'objectif doit être supérieur à 0')
-      if (!fixedAmount || parseFloat(fixedAmount) <= 0) throw new Error('Le montant fixe doit être supérieur à 0')
       if (!endsAt) throw new Error('La date de fin est requise')
 
       // Validation spécifique au mode
-      if (amountMode === 'TIERS' && tiers.length === 0) {
-        throw new Error('Au moins un palier doit être défini')
+      if (amountMode === 'FIXED') {
+        if (!fixedAmount || parseFloat(fixedAmount) <= 0) {
+          throw new Error('Le montant fixe doit être supérieur à 0')
+        }
+      } else if (amountMode === 'TIERS') {
+        if (tiers.length === 0) {
+          throw new Error('Au moins un palier doit être défini')
+        }
+        // Vérifier que tous les paliers ont un montant valide
+        for (const tier of tiers) {
+          if (tier.amount_cents <= 0) {
+            throw new Error('Tous les paliers doivent avoir un montant supérieur à 0')
+          }
+        }
+      } else if (amountMode === 'FREE') {
+        if (!suggestedAmount || parseFloat(suggestedAmount) <= 0) {
+          throw new Error('Le montant suggéré doit être supérieur à 0')
+        }
+      }
+
+      // Déterminer le montant fixe selon le mode
+      let fixedAmountCents: number
+      if (amountMode === 'FIXED') {
+        fixedAmountCents = Math.round(parseFloat(fixedAmount) * 100)
+      } else if (amountMode === 'FREE') {
+        fixedAmountCents = Math.round(parseFloat(suggestedAmount) * 100)
+      } else {
+        // Pour les paliers, utiliser le montant du premier palier comme référence
+        fixedAmountCents = tiers[0]?.amount_cents || 1000
       }
 
       const request: CreatePotRequestV2 = {
         name: name.trim(),
         objective_cents: Math.round(parseFloat(objective) * 100),
-        fixed_amount_cents: Math.round(parseFloat(fixedAmount) * 100),
+        fixed_amount_cents: fixedAmountCents,
         ends_at: endsAt + 'T23:59:59.000Z',
         pin: pin.trim() || undefined,
         
@@ -164,26 +191,6 @@ export default function CreatePage() {
               </div>
 
               <div>
-                <label htmlFor="fixedAmount" className="label-field">
-                  Montant fixe (€) *
-                </label>
-                <input
-                  type="number"
-                  id="fixedAmount"
-                  step="0.01"
-                  min="0.01"
-                  value={fixedAmount}
-                  onChange={(e) => setFixedAmount(e.target.value)}
-                  className="input-field"
-                  placeholder="20.00"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Montant de référence pour les calculs
-                </p>
-              </div>
-
-              <div>
                 <label htmlFor="endsAt" className="label-field">
                   Date de fin *
                 </label>
@@ -229,7 +236,31 @@ export default function CreatePage() {
               disabled={creating}
             />
 
-            {/* Configuration des paliers */}
+            {/* Configuration spécifique selon le mode */}
+            {amountMode === 'FIXED' && (
+              <div className="mt-6 border-t pt-6">
+                <div>
+                  <label htmlFor="fixedAmount" className="label-field">
+                    Montant fixe (€) *
+                  </label>
+                  <input
+                    type="number"
+                    id="fixedAmount"
+                    step="0.01"
+                    min="0.01"
+                    value={fixedAmount}
+                    onChange={(e) => setFixedAmount(e.target.value)}
+                    className="input-field"
+                    placeholder="20.00"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Tous les contributeurs paieront ce montant
+                  </p>
+                </div>
+              </div>
+            )}
+
             {amountMode === 'TIERS' && (
               <div className="mt-6 border-t pt-6">
                 <TiersSelector
@@ -237,6 +268,30 @@ export default function CreatePage() {
                   onTiersChange={setTiers}
                   disabled={creating}
                 />
+              </div>
+            )}
+
+            {amountMode === 'FREE' && (
+              <div className="mt-6 border-t pt-6">
+                <div>
+                  <label htmlFor="suggestedAmount" className="label-field">
+                    Montant suggéré (€) *
+                  </label>
+                  <input
+                    type="number"
+                    id="suggestedAmount"
+                    step="0.01"
+                    min="0.01"
+                    value={suggestedAmount}
+                    onChange={(e) => setSuggestedAmount(e.target.value)}
+                    className="input-field"
+                    placeholder="20.00"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Montant suggéré aux contributeurs (ils pourront le modifier)
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -301,9 +356,9 @@ export default function CreatePage() {
               <div>
                 <span className="font-medium text-blue-800">Mode de contribution :</span>
                 <span className="ml-2 text-blue-700">
-                  {amountMode === 'FIXED' && 'Montant fixe unique'}
+                  {amountMode === 'FIXED' && `Montant fixe unique (${fixedAmount}€)`}
                   {amountMode === 'TIERS' && `${tiers.length} paliers disponibles`}
-                  {amountMode === 'FREE' && 'Montant libre'}
+                  {amountMode === 'FREE' && `Montant libre (suggéré: ${suggestedAmount}€)`}
                 </span>
               </div>
               
