@@ -38,7 +38,7 @@ function formatRelativeTime(dateString: string): string {
 export default function ContributorsList({ contributions }: ContributorsListProps) {
   if (contributions.length === 0) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <div className="card">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
           👥 Contributeurs
         </h2>
@@ -50,7 +50,7 @@ export default function ContributorsList({ contributions }: ContributorsListProp
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="card">
       <h2 className="text-xl font-semibold text-gray-900 mb-4">
         👥 Contributeurs ({contributions.length})
       </h2>

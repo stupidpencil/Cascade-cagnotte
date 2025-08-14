@@ -125,14 +125,14 @@ export default function CreatePage() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Informations de base */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="card">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
               📝 Informations de base
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="name" className="block text-sm label-high-contrast mb-2">
+                <label htmlFor="name" className="label-field">
                   Nom de la cagnotte *
                 </label>
                 <input
@@ -140,14 +140,14 @@ export default function CreatePage() {
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white input-high-contrast focus:outline-none focus:border-blue-500"
+                  className="input-field"
                   placeholder="Ex: Cagnotte pour le cadeau de Marie"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="objective" className="block text-sm label-high-contrast mb-2">
+                <label htmlFor="objective" className="label-field">
                   Objectif (€) *
                 </label>
                 <input
@@ -157,14 +157,14 @@ export default function CreatePage() {
                   min="0.01"
                   value={objective}
                   onChange={(e) => setObjective(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white input-high-contrast focus:outline-none focus:border-blue-500"
+                  className="input-field"
                   placeholder="200.00"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="fixedAmount" className="block text-sm label-high-contrast mb-2">
+                <label htmlFor="fixedAmount" className="label-field">
                   Montant fixe (€) *
                 </label>
                 <input
@@ -174,7 +174,7 @@ export default function CreatePage() {
                   min="0.01"
                   value={fixedAmount}
                   onChange={(e) => setFixedAmount(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white input-high-contrast focus:outline-none focus:border-blue-500"
+                  className="input-field"
                   placeholder="20.00"
                   required
                 />
@@ -184,7 +184,7 @@ export default function CreatePage() {
               </div>
 
               <div>
-                <label htmlFor="endsAt" className="block text-sm label-high-contrast mb-2">
+                <label htmlFor="endsAt" className="label-field">
                   Date de fin *
                 </label>
                 <input
@@ -192,13 +192,13 @@ export default function CreatePage() {
                   id="endsAt"
                   value={endsAt}
                   onChange={(e) => setEndsAt(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white input-high-contrast focus:outline-none focus:border-blue-500"
+                  className="input-field"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="pin" className="block text-sm label-high-contrast mb-2">
+                <label htmlFor="pin" className="label-field">
                   Code PIN (optionnel)
                 </label>
                 <input
@@ -206,7 +206,7 @@ export default function CreatePage() {
                   id="pin"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white input-high-contrast focus:outline-none focus:border-blue-500"
+                  className="input-field"
                   placeholder="1234"
                   maxLength={10}
                 />
@@ -218,7 +218,7 @@ export default function CreatePage() {
           </div>
 
           {/* Mode de contribution */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="card">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
               💰 Mode de contribution
             </h2>
@@ -242,7 +242,7 @@ export default function CreatePage() {
           </div>
 
           {/* Fréquence */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="card">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
               🔄 Fréquence de contribution
             </h2>
@@ -257,7 +257,7 @@ export default function CreatePage() {
           </div>
 
           {/* Paramètres avancés */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="card">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
               ⚙️ Paramètres avancés
             </h2>

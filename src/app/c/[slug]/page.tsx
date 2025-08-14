@@ -233,7 +233,7 @@ export default function PotPage() {
         </div>
 
         {/* En-tête */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+        <div className="card mb-6">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-gray-900">{pot ? pot.name : 'Chargement...'}</h1>
             <div className="flex space-x-2">
@@ -357,7 +357,7 @@ export default function PotPage() {
           <div className="space-y-6">
             {/* Formulaire de contribution */}
             {pot && !isClosed && (
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="card">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
                   💳 Contribuer à cette cagnotte
                 </h2>

@@ -105,7 +105,7 @@ export default function TiersSelector({
                   onChange={(e) => updateTier(index, 'label', e.target.value)}
                   disabled={disabled}
                   placeholder="Label du palier"
-                  className="w-full px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500 input-high-contrast"
+                  className="input-field"
                 />
               </div>
               
@@ -136,7 +136,7 @@ export default function TiersSelector({
                 onChange={(e) => setNewTierAmount(e.target.value)}
                 disabled={disabled}
                 placeholder="Montant"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 input-high-contrast"
+                className="input-field"
               />
             </div>
             
@@ -147,7 +147,7 @@ export default function TiersSelector({
                 onChange={(e) => setNewTierLabel(e.target.value)}
                 disabled={disabled}
                 placeholder="Label (ex: 5€, 10€, 20€)"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 input-high-contrast"
+                className="input-field"
               />
             </div>
             
