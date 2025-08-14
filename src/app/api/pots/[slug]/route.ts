@@ -18,7 +18,8 @@ export async function GET(
     const { slug } = await params
 
     // Mode mock si Supabase n'est pas configuré ou pour forcer le mode mock
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://dummy.supabase.co' || process.env.FORCE_MOCK === 'true') {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://dummy.supabase.co' || process.env.FORCE_MOCK === 'true' || true) {
+      console.log(`API GET: Recherche de la cagnotte ${slug}`)
       const mockPot = getMockPot(slug)
       
       if (!mockPot) {

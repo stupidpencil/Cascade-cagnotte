@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { CreatePotRequestV2 } from '@/lib/types-v2'
+import { createMockPot } from '@/lib/mock-storage'
 
 export async function POST(request: NextRequest) {
   try {
@@ -96,8 +97,9 @@ export async function POST(request: NextRequest) {
       const slug = Math.random().toString(36).substring(2, 10)
       const ownerToken = Math.random().toString(36).substring(2, 20)
       
-      const mockPot = {
-        id: `mock-${Date.now()}`,
+      // Créer la cagnotte dans le mock storage
+      console.log(`API CREATE: Création de la cagnotte ${slug}`)
+      const mockPot = createMockPot({
         slug,
         name: body.name,
         objective_cents: body.objective_cents,
@@ -106,20 +108,9 @@ export async function POST(request: NextRequest) {
         owner_token: ownerToken,
         pin: body.pin || null,
         status: 'OPEN',
-        created_at: new Date().toISOString(),
-        
-        // Nouvelles propriétés V2
-        amount_mode: body.amount_mode || 'FIXED',
-        frequency: body.frequency || 'ONE_TIME',
-        tiers: body.tiers || null,
-        solidarity_threshold_cents: body.solidarity_threshold_cents || null,
-        solidarity_rate: body.solidarity_rate || 0.1,
-        reserve_enabled: body.reserve_enabled || false,
-        reserve_target_cents: body.reserve_target_cents || null,
-        reserve_balance_cents: 0,
-        current_cycle: 1,
-        cycle_duration_days: body.cycle_duration_days || null
-      }
+        closed_at: null
+      })
+      console.log(`API CREATE: Cagnotte créée avec succès: ${mockPot.slug}`)
 
       return NextResponse.json({
         id: mockPot.id,

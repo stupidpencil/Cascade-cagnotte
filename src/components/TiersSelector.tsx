@@ -74,26 +74,26 @@ export default function TiersSelector({
             >
               <div className="flex-1">
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0.10"
+                  type="text"
                   value={(tier.amount_cents / 100).toFixed(2)}
                   onChange={(e) => {
                     const value = e.target.value
                     if (value === '') return
-                    const amount = Math.round(parseFloat(value) * 100)
-                    if (amount >= 10) {
+                    const numValue = parseFloat(value)
+                    if (!isNaN(numValue) && numValue >= 0.10) {
+                      const amount = Math.round(numValue * 100)
                       updateTier(index, 'amount_cents', amount)
                     }
                   }}
                   onBlur={(e) => {
                     const value = e.target.value
-                    if (value === '') {
+                    if (value === '' || parseFloat(value) < 0.10) {
                       updateTier(index, 'amount_cents', 1000) // 10€ par défaut
                     }
                   }}
                   disabled={disabled}
-                  className="tier-input"
+                  className="input-field"
+                  placeholder="0.00"
                 />
                 <span className="text-sm text-gray-500 ml-2">€</span>
               </div>
@@ -129,9 +129,7 @@ export default function TiersSelector({
           <div className="flex items-center space-x-3">
             <div className="flex-1">
               <input
-                type="number"
-                step="0.01"
-                min="0.10"
+                type="text"
                 value={newTierAmount}
                 onChange={(e) => setNewTierAmount(e.target.value)}
                 disabled={disabled}
