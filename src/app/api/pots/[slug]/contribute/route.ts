@@ -120,6 +120,7 @@ export async function POST(
     // Générer un token de contribution unique
     const { data: contribTokenData, error: tokenError } = await supabase.rpc('generate_contrib_token')
     if (tokenError) {
+      console.error('Erreur génération token:', tokenError)
       return NextResponse.json(
         { error: 'Erreur lors de la génération du token' },
         { status: 500 }
@@ -135,6 +136,7 @@ export async function POST(
       .insert({
         pot_id: pot.id,
         amount_cents: pot.fixed_amount_cents, // Toujours le montant fixe
+        amount_paid_cents: pot.fixed_amount_cents, // Montant effectivement payé
         email: email || null,
         display_name: display_name || null,
         is_anonymous: is_anonymous || false,
@@ -146,6 +148,7 @@ export async function POST(
       .single()
 
     if (contribError) {
+      console.error('Erreur création contribution:', contribError)
       return NextResponse.json(
         { error: 'Erreur lors de la création de la contribution' },
         { status: 500 }
@@ -175,11 +178,12 @@ export async function POST(
 
     // Créer une session de paiement Stripe (ou URL de paiement)
     let checkoutUrl = ''
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     if (MOCK_MODE) {
-      checkoutUrl = `${process.env.NEXT_PUBLIC_APP_URL}/c/${slug}/thanks?session_id=mock_session_${Date.now()}`
+      checkoutUrl = `${baseUrl}/c/${slug}/thanks?session_id=mock_session_${Date.now()}`
     } else {
       // TODO: Intégrer Stripe pour créer une vraie session de paiement
-      checkoutUrl = `${process.env.NEXT_PUBLIC_APP_URL}/c/${slug}/thanks?session_id=stripe_session_${Date.now()}`
+      checkoutUrl = `${baseUrl}/c/${slug}/thanks?session_id=stripe_session_${Date.now()}`
     }
 
     return NextResponse.json({
