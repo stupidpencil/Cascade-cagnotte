@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Mode mock si Supabase n'est pas configuré
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://dummy.supabase.co' || process.env.FORCE_MOCK === 'true') {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://dummy.supabase.co' || process.env.FORCE_MOCK === 'true' || true) {
       // Générer un slug et un token uniques
       const slug = Math.random().toString(36).substring(2, 10)
       const ownerToken = Math.random().toString(36).substring(2, 20)

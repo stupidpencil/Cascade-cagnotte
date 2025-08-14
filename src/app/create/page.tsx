@@ -132,7 +132,7 @@ export default function CreatePage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="name" className="block text-sm label-high-contrast mb-2">
                   Nom de la cagnotte *
                 </label>
                 <input
@@ -140,14 +140,14 @@ export default function CreatePage() {
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white input-high-contrast focus:outline-none focus:border-blue-500"
                   placeholder="Ex: Cagnotte pour le cadeau de Marie"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="objective" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="objective" className="block text-sm label-high-contrast mb-2">
                   Objectif (€) *
                 </label>
                 <input
@@ -157,14 +157,14 @@ export default function CreatePage() {
                   min="0.01"
                   value={objective}
                   onChange={(e) => setObjective(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white input-high-contrast focus:outline-none focus:border-blue-500"
                   placeholder="200.00"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="fixedAmount" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="fixedAmount" className="block text-sm label-high-contrast mb-2">
                   Montant fixe (€) *
                 </label>
                 <input
@@ -174,7 +174,7 @@ export default function CreatePage() {
                   min="0.01"
                   value={fixedAmount}
                   onChange={(e) => setFixedAmount(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white input-high-contrast focus:outline-none focus:border-blue-500"
                   placeholder="20.00"
                   required
                 />
@@ -184,7 +184,7 @@ export default function CreatePage() {
               </div>
 
               <div>
-                <label htmlFor="endsAt" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="endsAt" className="block text-sm label-high-contrast mb-2">
                   Date de fin *
                 </label>
                 <input
@@ -192,13 +192,13 @@ export default function CreatePage() {
                   id="endsAt"
                   value={endsAt}
                   onChange={(e) => setEndsAt(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white text-gray-900 focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white input-high-contrast focus:outline-none focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="pin" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="pin" className="block text-sm label-high-contrast mb-2">
                   Code PIN (optionnel)
                 </label>
                 <input
@@ -206,7 +206,7 @@ export default function CreatePage() {
                   id="pin"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-400 rounded-md bg-white input-high-contrast focus:outline-none focus:border-blue-500"
                   placeholder="1234"
                   maxLength={10}
                 />

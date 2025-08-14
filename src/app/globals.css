@@ -1,26 +1,71 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Amélioration du contraste pour les champs de saisie */
+@layer components {
+  .input-high-contrast {
+    @apply text-gray-900 !important;
+    @apply placeholder-gray-600 !important;
+    @apply font-medium !important;
+  }
+  
+  .label-high-contrast {
+    @apply text-gray-800 !important;
+    @apply font-semibold !important;
+  }
+  
+  .text-high-contrast {
+    @apply text-gray-900 !important;
   }
 }
 
+/* Override des styles Tailwind pour forcer le contraste */
+input, textarea, select {
+  color: #111827 !important; /* gray-900 */
+}
+
+input::placeholder, textarea::placeholder {
+  color: #4B5563 !important; /* gray-600 */
+}
+
+label {
+  color: #1F2937 !important; /* gray-800 */
+  font-weight: 600 !important;
+}
+
+/* Amélioration du contraste pour les textes généraux */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: #111827 !important; /* gray-900 */
+}
+
+/* Styles pour les composants V2 */
+.amount-mode-card {
+  @apply border-2 transition-all duration-200;
+}
+
+.amount-mode-card.selected {
+  @apply border-blue-500 bg-blue-50 shadow-md;
+}
+
+.amount-mode-card:not(.selected) {
+  @apply border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm;
+}
+
+.tier-input {
+  @apply w-20 px-2 py-1 text-sm border border-gray-300 rounded;
+  @apply focus:outline-none focus:border-blue-500;
+  @apply text-gray-900 font-medium;
+}
+
+.frequency-button {
+  @apply px-3 py-2 text-sm rounded-lg border transition-colors;
+}
+
+.frequency-button.selected {
+  @apply border-blue-500 bg-blue-50 text-blue-700 font-medium;
+}
+
+.frequency-button:not(.selected) {
+  @apply border-gray-200 bg-white text-gray-700 hover:border-gray-300;
 }

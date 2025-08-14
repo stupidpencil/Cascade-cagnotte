@@ -79,13 +79,21 @@ export default function TiersSelector({
                   min="0.10"
                   value={(tier.amount_cents / 100).toFixed(2)}
                   onChange={(e) => {
-                    const amount = parseFloat(e.target.value) * 100
+                    const value = e.target.value
+                    if (value === '') return
+                    const amount = Math.round(parseFloat(value) * 100)
                     if (amount >= 10) {
                       updateTier(index, 'amount_cents', amount)
                     }
                   }}
+                  onBlur={(e) => {
+                    const value = e.target.value
+                    if (value === '') {
+                      updateTier(index, 'amount_cents', 1000) // 10€ par défaut
+                    }
+                  }}
                   disabled={disabled}
-                  className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                  className="tier-input"
                 />
                 <span className="text-sm text-gray-500 ml-2">€</span>
               </div>
@@ -97,7 +105,7 @@ export default function TiersSelector({
                   onChange={(e) => updateTier(index, 'label', e.target.value)}
                   disabled={disabled}
                   placeholder="Label du palier"
-                  className="w-full px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500 input-high-contrast"
                 />
               </div>
               
@@ -128,7 +136,7 @@ export default function TiersSelector({
                 onChange={(e) => setNewTierAmount(e.target.value)}
                 disabled={disabled}
                 placeholder="Montant"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 input-high-contrast"
               />
             </div>
             
@@ -139,7 +147,7 @@ export default function TiersSelector({
                 onChange={(e) => setNewTierLabel(e.target.value)}
                 disabled={disabled}
                 placeholder="Label (ex: 5€, 10€, 20€)"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500 input-high-contrast"
               />
             </div>
             
