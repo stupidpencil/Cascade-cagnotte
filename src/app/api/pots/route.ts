@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Mode mock si Supabase n'est pas configuré
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://dummy.supabase.co' || process.env.FORCE_MOCK === 'true' || true) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://dummy.supabase.co' || process.env.FORCE_MOCK === 'true') {
       // Générer un slug et un token uniques
       const slug = Math.random().toString(36).substring(2, 10)
       const ownerToken = Math.random().toString(36).substring(2, 20)
@@ -122,34 +122,44 @@ export async function POST(request: NextRequest) {
     }
 
     // Mode Supabase réel
-    const { data: slugData, error: slugError } = await supabase.rpc('generate_unique_slug')
-    if (slugError) {
-      console.error('Erreur lors de la génération du slug:', slugError)
+    console.log('Utilisation du mode Supabase réel')
+    
+    // Générer un slug et un token uniques
+    const slug = Math.random().toString(36).substring(2, 10)
+    const ownerToken = Math.random().toString(36).substring(2, 20)
+    
+    // Vérifier que le slug n'existe pas déjà
+    const { data: existingPot, error: checkError } = await supabase
+      .from('pots')
+      .select('slug')
+      .eq('slug', slug)
+      .single()
+    
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('Erreur lors de la vérification du slug:', checkError)
       return NextResponse.json(
-        { error: 'Erreur lors de la génération du slug' },
+        { error: 'Erreur lors de la vérification du slug' },
         { status: 500 }
       )
     }
-
-    const { data: tokenData, error: tokenError } = await supabase.rpc('generate_unique_token')
-    if (tokenError) {
-      console.error('Erreur lors de la génération du token:', tokenError)
+    
+    if (existingPot) {
       return NextResponse.json(
-        { error: 'Erreur lors de la génération du token' },
-        { status: 500 }
+        { error: 'Slug déjà utilisé, veuillez réessayer' },
+        { status: 409 }
       )
     }
 
-    // Créer la cagnotte avec les nouveaux champs V2
+    // Créer la cagnotte
     const { data: pot, error: potError } = await supabase
       .from('pots')
       .insert({
-        slug: slugData,
+        slug: slug,
         name: body.name,
         objective_cents: body.objective_cents,
         fixed_amount_cents: body.fixed_amount_cents,
         ends_at: body.ends_at,
-        owner_token: tokenData,
+        owner_token: ownerToken,
         pin: body.pin || null,
         
         // Nouvelles propriétés V2
