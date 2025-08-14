@@ -3,37 +3,48 @@
 ## Problème actuel
 Le mode mock a des problèmes de partage d'état entre les APIs. Supabase offre un stockage plus fiable.
 
-## Étapes de configuration
+## Configuration actuelle
+✅ Variables d'environnement configurées :
+- NEXT_PUBLIC_SUPABASE_URL=https://svzrcderxphkthonyefm.supabase.co
+- NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-### 1. Créer un projet Supabase
-1. Allez sur [supabase.com](https://supabase.com)
-2. Créez un nouveau projet
-3. Notez l'URL et la clé anonyme
+## Étapes pour activer Supabase
 
-### 2. Configurer les variables d'environnement
-Créez un fichier `.env.local` à la racine du projet :
+### 1. Appliquer le schéma de base de données
+1. Allez sur [supabase.com](https://supabase.com) et connectez-vous
+2. Ouvrez votre projet : https://supabase.com/dashboard/project/svzrcderxphkthonyefm
+3. Allez dans "SQL Editor" (éditeur SQL)
+4. Copiez le contenu complet de `supabase/schema.sql`
+5. Exécutez le script
 
+### 2. Vérifier les tables créées
+Dans Supabase, allez dans "Table Editor" et vérifiez que vous avez :
+- ✅ Table `pots`
+- ✅ Table `contributions` 
+- ✅ Table `refunds`
+- ✅ Indexes créés
+- ✅ Fonctions `generate_unique_slug` et `generate_unique_token`
+
+### 3. Activer Supabase
+Une fois le schéma appliqué, modifiez `.env.local` :
 ```bash
-# Configuration Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
-
-# URL de l'application
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# Mode de développement (false pour utiliser Supabase)
+# Remplacez cette ligne :
+FORCE_MOCK=true
+# Par :
 FORCE_MOCK=false
 ```
 
-### 3. Appliquer le schéma de base de données
-1. Dans votre projet Supabase, allez dans "SQL Editor"
-2. Copiez le contenu de `supabase/schema.sql`
-3. Exécutez le script
+### 4. Redémarrer et tester
+```bash
+# Arrêter le serveur
+pkill -f "next dev"
 
-### 4. Tester l'application
-1. Redémarrez le serveur de développement
-2. Testez la création d'une cagnotte
-3. Vérifiez que les données sont bien sauvegardées dans Supabase
+# Redémarrer
+npm run dev
+
+# Tester
+curl -X POST http://localhost:3000/api/pots -H "Content-Type: application/json" -d '{"name": "Test Supabase", "objective_cents": 20000, "fixed_amount_cents": 2000, "ends_at": "2025-12-31T23:59:59.000Z"}'
+```
 
 ## Avantages de Supabase
 - ✅ Stockage persistant
@@ -44,3 +55,10 @@ FORCE_MOCK=false
 
 ## Mode de fallback
 Si Supabase n'est pas configuré, l'application bascule automatiquement en mode mock.
+
+## Dépannage
+Si vous avez des erreurs :
+1. Vérifiez que le schéma est bien appliqué
+2. Vérifiez les permissions RLS (Row Level Security)
+3. Vérifiez que les fonctions sont créées
+4. Consultez les logs dans Supabase > Logs
