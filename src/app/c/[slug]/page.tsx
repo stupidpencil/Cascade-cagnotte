@@ -73,15 +73,23 @@ export default function PotPage() {
     return () => clearInterval(interval)
   }, [pot])
 
-  const fetchPot = async () => {
+  const fetchPot = async (retryCount = 0) => {
     try {
-      console.log(`Fetching pot data for slug: ${slug}`)
+      console.log(`Fetching pot data for slug: ${slug} (attempt ${retryCount + 1})`)
       const response = await fetch(`/api/pots/${slug}`)
       console.log(`Response status: ${response.status}`)
       
       if (!response.ok) {
         const errorText = await response.text()
         console.error(`API Error: ${response.status} - ${errorText}`)
+        
+        // Si c'est une erreur 404 et qu'on n'a pas encore retry, on attend un peu et on réessaie
+        if (response.status === 404 && retryCount < 2) {
+          console.log(`Pot not found, retrying in 1 second... (attempt ${retryCount + 1})`)
+          setTimeout(() => fetchPot(retryCount + 1), 1000)
+          return
+        }
+        
         throw new Error(`Cagnotte non trouvée (${response.status})`)
       }
       
@@ -131,6 +139,7 @@ export default function PotPage() {
     if (!pot) return
 
     setContributing(true)
+    setError('') // Clear previous errors
     try {
       const response = await fetch(`/api/pots/${slug}/contribute`, {
         method: 'POST',
@@ -145,8 +154,23 @@ export default function PotPage() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Erreur lors de la contribution')
+        const errorText = await response.text()
+        console.error(`Contribution API Error: ${response.status} - ${errorText}`)
+        
+        let errorMessage = 'Erreur lors de la contribution'
+        try {
+          const errorData = JSON.parse(errorText)
+          errorMessage = errorData.error || errorMessage
+        } catch {
+          // Si on ne peut pas parser le JSON, on utilise le texte brut
+          if (response.status === 404) {
+            errorMessage = 'Cagnotte non trouvée. Veuillez rafraîchir la page et réessayer.'
+          } else {
+            errorMessage = `Erreur ${response.status}: ${errorText}`
+          }
+        }
+        
+        throw new Error(errorMessage)
       }
 
       const data: ContributionResponse = await response.json()
@@ -154,6 +178,7 @@ export default function PotPage() {
       // Rediriger vers la page de remerciement
       window.location.href = data.checkout_url
     } catch (err) {
+      console.error('Contribution error:', err)
       setError(err instanceof Error ? err.message : 'Erreur lors de la contribution')
     } finally {
       setContributing(false)
@@ -442,7 +467,18 @@ export default function PotPage() {
 
                   {error && (
                     <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                      <p className="text-red-800">{error}</p>
+                      <p className="text-red-800 mb-3">{error}</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setError('')
+                          setLoading(true)
+                          fetchPot()
+                        }}
+                        className="text-sm bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded border border-red-300 transition-colors"
+                      >
+                        Réessayer
+                      </button>
                     </div>
                   )}
 
