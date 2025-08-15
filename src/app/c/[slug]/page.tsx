@@ -20,6 +20,18 @@ interface Pot {
   contributors_count: number
   estimated_refund_if_i_pay_now_cents: number
   current_surplus_cents: number
+  
+  // Champs V2
+  amount_mode?: 'FIXED' | 'TIERS' | 'FREE'
+  frequency?: 'ONE_TIME' | 'RECURRING'
+  tiers?: Array<{ amount_cents: number; label: string }>
+  solidarity_threshold_cents?: number
+  solidarity_rate?: number
+  reserve_enabled?: boolean
+  reserve_target_cents?: number
+  reserve_balance_cents?: number
+  current_cycle?: number
+  cycle_duration_days?: number
 }
 
 interface ContributionResponse {
@@ -50,6 +62,10 @@ export default function PotPage() {
   const [verificationToken, setVerificationToken] = useState<string | null>(null)
   const [contributionData, setContributionData] = useState<any>(null)
   const [contributions, setContributions] = useState<any[]>([])
+  
+  // États pour l'interface adaptative
+  const [selectedTier, setSelectedTier] = useState<number | null>(null)
+  const [freeAmount, setFreeAmount] = useState('')
 
   useEffect(() => {
     fetchPot()
@@ -164,6 +180,23 @@ export default function PotPage() {
     e.preventDefault()
     if (!pot) return
 
+    // Validation du montant selon le mode
+    const contributionAmount = getContributionAmount()
+    if (contributionAmount <= 0) {
+      setError('Veuillez sélectionner un montant valide pour contribuer.')
+      return
+    }
+
+    if (pot.amount_mode === 'TIERS' && !selectedTier) {
+      setError('Veuillez sélectionner un palier de contribution.')
+      return
+    }
+
+    if (pot.amount_mode === 'FREE' && (!freeAmount || parseFloat(freeAmount) < 0.10)) {
+      setError('Le montant minimum est de 0.10€.')
+      return
+    }
+
     setContributing(true)
     setError('') // Clear previous errors
     try {
@@ -176,7 +209,9 @@ export default function PotPage() {
         body: JSON.stringify({ 
           email: email || null,
           display_name: displayName || null,
-          is_anonymous: isAnonymous
+          is_anonymous: isAnonymous,
+          amount_cents: getContributionAmount(),
+          tier_selected: pot.amount_mode === 'TIERS' && selectedTier ? selectedTier.toString() : undefined
         }),
         cache: 'no-cache',
         credentials: 'same-origin',
@@ -281,6 +316,44 @@ export default function PotPage() {
   const progressPercentage = pot ? getProgressPercentage(pot.total_collected_cents, pot.objective_cents) : 0
   const isObjectiveReached = pot ? pot.total_collected_cents >= pot.objective_cents : false
   const isClosed = pot ? pot.status === 'CLOSED' : false
+
+  // Fonctions utilitaires pour l'interface adaptative
+  const getContributionAmount = (): number => {
+    if (!pot) return 0
+    
+    switch (pot.amount_mode) {
+      case 'FIXED':
+        return pot.fixed_amount_cents
+      case 'TIERS':
+        return selectedTier || (pot.tiers && pot.tiers.length > 0 ? pot.tiers[0].amount_cents : pot.fixed_amount_cents)
+      case 'FREE':
+        const amount = parseFloat(freeAmount) * 100
+        return isNaN(amount) ? (pot.fixed_amount_cents || 2000) : Math.max(amount, 10) // Minimum 0.10€
+      default:
+        return pot.fixed_amount_cents
+    }
+  }
+
+  const getSuggestedAmount = (): number => {
+    if (!pot) return 0
+    
+    // Pour le mode FREE, utiliser le montant suggéré ou le montant fixe par défaut
+    if (pot.amount_mode === 'FREE') {
+      return pot.fixed_amount_cents || 2000 // 20€ par défaut
+    }
+    
+    return getContributionAmount()
+  }
+
+  // Initialiser le montant libre avec la suggestion
+  useEffect(() => {
+    if (pot && pot.amount_mode === 'FREE' && !freeAmount) {
+      setFreeAmount(formatAmount(getSuggestedAmount()))
+    }
+    if (pot && pot.amount_mode === 'TIERS' && selectedTier === null && pot.tiers && pot.tiers.length > 0) {
+      setSelectedTier(pot.tiers[0].amount_cents)
+    }
+  }, [pot, freeAmount, selectedTier])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -465,20 +538,84 @@ export default function PotPage() {
                     </label>
                   </div>
 
+                  {/* Interface adaptative selon le mode de contribution */}
                   <div>
-                    <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Montant de contribution
                     </label>
-                    <input
-                      type="text"
-                      id="amount"
-                      value={pot ? formatAmount(pot.fixed_amount_cents) : ''}
-                      readOnly
-                      className="w-full px-4 py-3 border border-gray-400 rounded-md bg-gray-100 text-gray-900 cursor-not-allowed text-xl font-bold text-center"
-                    />
-                    <p className="text-sm text-gray-700 mt-2 font-medium">
-                      Montant de départ par contributeur
-                    </p>
+                    
+                    {pot?.amount_mode === 'FIXED' && (
+                      <div>
+                        <input
+                          type="text"
+                          value={formatAmount(pot.fixed_amount_cents)}
+                          readOnly
+                          className="w-full px-4 py-3 border border-gray-400 rounded-md bg-gray-100 text-gray-900 cursor-not-allowed text-xl font-bold text-center"
+                        />
+                        <p className="text-sm text-gray-700 mt-2 font-medium">
+                          Montant fixe pour cette cagnotte
+                        </p>
+                      </div>
+                    )}
+                    
+                    {pot?.amount_mode === 'TIERS' && pot.tiers && (
+                      <div>
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                          {pot.tiers.map((tier, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => setSelectedTier(tier.amount_cents)}
+                              className={`p-4 border-2 rounded-lg text-center transition-colors ${
+                                selectedTier === tier.amount_cents
+                                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                  : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                              }`}
+                            >
+                              <div className="text-xl font-bold">{formatAmount(tier.amount_cents)}</div>
+                              <div className="text-sm text-gray-600">{tier.label}</div>
+                            </button>
+                          ))}
+                        </div>
+                        {selectedTier && (
+                          <p className="text-sm text-gray-700 font-medium">
+                            Montant sélectionné : {formatAmount(selectedTier)}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    
+                    {pot?.amount_mode === 'FREE' && (
+                      <div>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0.10"
+                          value={freeAmount}
+                          onChange={(e) => setFreeAmount(e.target.value)}
+                          className="w-full px-4 py-3 border border-gray-400 rounded-md bg-white text-gray-900 text-xl font-bold text-center"
+                          placeholder="20.00"
+                        />
+                        <p className="text-sm text-gray-700 mt-2 font-medium">
+                          Montant libre (minimum 0.10€)
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Mode par défaut (FIXED) si amount_mode n'est pas défini */}
+                    {!pot?.amount_mode && (
+                      <div>
+                        <input
+                          type="text"
+                          value={pot ? formatAmount(pot.fixed_amount_cents) : ''}
+                          readOnly
+                          className="w-full px-4 py-3 border border-gray-400 rounded-md bg-gray-100 text-gray-900 cursor-not-allowed text-xl font-bold text-center"
+                        />
+                        <p className="text-sm text-gray-700 mt-2 font-medium">
+                          Montant fixe pour cette cagnotte
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Message informatif */}
@@ -487,7 +624,7 @@ export default function PotPage() {
                       <div className="bg-blue-50 text-blue-800 border border-blue-200 rounded-lg p-4">
                         <p className="font-medium">Aucun remboursement prévu pour le moment.</p>
                         <p className="text-blue-700 mt-1">
-                          L'objectif n'est pas encore atteint. Votre contribution sera de {formatAmount(pot.fixed_amount_cents)}.
+                          L'objectif n'est pas encore atteint. Votre contribution sera de {formatAmount(getContributionAmount())}.
                         </p>
                       </div>
                     ) : (

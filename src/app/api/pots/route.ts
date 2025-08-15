@@ -108,7 +108,19 @@ export async function POST(request: NextRequest) {
         owner_token: ownerToken,
         pin: body.pin || null,
         status: 'OPEN',
-        closed_at: null
+        closed_at: null,
+        
+        // Nouvelles propriétés V2
+        amount_mode: body.amount_mode || 'FIXED',
+        frequency: body.frequency || 'ONE_TIME',
+        tiers: body.tiers || undefined,
+        solidarity_threshold_cents: body.solidarity_threshold_cents || undefined,
+        solidarity_rate: body.solidarity_rate || 0.1,
+        reserve_enabled: body.reserve_enabled || false,
+        reserve_target_cents: body.reserve_target_cents || undefined,
+        reserve_balance_cents: 0,
+        current_cycle: 1,
+        cycle_duration_days: body.cycle_duration_days || undefined
       })
       console.log(`API CREATE: Cagnotte créée avec succès: ${mockPot.slug}`)
 
