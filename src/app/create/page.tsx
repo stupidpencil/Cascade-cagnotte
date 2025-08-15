@@ -13,6 +13,7 @@ import {
   Tier, 
   CreatePotRequestV2 
 } from '@/lib/types-v2'
+import { formatAmount } from '@/lib/calculations'
 
 export default function CreatePage() {
   const router = useRouter()
@@ -174,23 +175,6 @@ export default function CreatePage() {
               </div>
 
               <div>
-                <label htmlFor="objective" className="label-field">
-                  Objectif (€) *
-                </label>
-                <input
-                  type="number"
-                  id="objective"
-                  step="0.01"
-                  min="0.01"
-                  value={objective}
-                  onChange={(e) => setObjective(e.target.value)}
-                  className="input-field"
-                  placeholder="200.00"
-                  required
-                />
-              </div>
-
-              <div>
                 <label htmlFor="endsAt" className="label-field">
                   Date de fin *
                 </label>
@@ -296,7 +280,7 @@ export default function CreatePage() {
             )}
           </div>
 
-          {/* Fréquence */}
+          {/* Fréquence et Objectif */}
           <div className="card">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">
               🔄 Fréquence de contribution
@@ -309,6 +293,32 @@ export default function CreatePage() {
               onCycleDurationChange={setCycleDurationDays}
               disabled={creating}
             />
+
+            {/* Objectif contextualisé selon la fréquence */}
+            <div className="mt-6 border-t pt-6">
+              <div>
+                <label htmlFor="objective" className="label-field">
+                  {frequency === 'ONE_TIME' ? 'Objectif total de la cagnotte (€)' : 'Objectif par cycle (€)'} *
+                </label>
+                <input
+                  type="number"
+                  id="objective"
+                  step="0.01"
+                  min="0.01"
+                  value={objective}
+                  onChange={(e) => setObjective(e.target.value)}
+                  className="input-field"
+                  placeholder="200.00"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {frequency === 'ONE_TIME' 
+                    ? 'Montant total à collecter avant la clôture.'
+                    : `Montant à collecter à chaque cycle (ex : chaque ${cycleDurationDays} jours).`
+                  }
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Paramètres avancés */}
