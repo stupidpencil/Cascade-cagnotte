@@ -76,7 +76,19 @@ export default function PotPage() {
   const fetchPot = async (retryCount = 0) => {
     try {
       console.log(`Fetching pot data for slug: ${slug} (attempt ${retryCount + 1})`)
-      const response = await fetch(`/api/pots/${slug}`)
+      
+      // Utiliser une URL absolue pour éviter les problèmes de réseau
+      const baseUrl = window.location.origin
+      const response = await fetch(`${baseUrl}/api/pots/${slug}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Ajouter des options pour améliorer la robustesse
+        cache: 'no-cache',
+        credentials: 'same-origin',
+      })
+      
       console.log(`Response status: ${response.status}`)
       
       if (!response.ok) {
@@ -99,7 +111,13 @@ export default function PotPage() {
       setIsAdmin(!!ownerToken)
     } catch (err) {
       console.error('Error fetching pot:', err)
-      setError(err instanceof Error ? err.message : 'Erreur lors du chargement de la cagnotte')
+      
+      // Gestion spécifique des erreurs réseau
+      if (err instanceof TypeError && err.message.includes('NetworkError')) {
+        setError('Erreur de connexion réseau. Veuillez vérifier votre connexion et réessayer.')
+      } else {
+        setError(err instanceof Error ? err.message : 'Erreur lors du chargement de la cagnotte')
+      }
     } finally {
       setLoading(false)
     }
@@ -107,7 +125,15 @@ export default function PotPage() {
 
   const fetchContributions = async () => {
     try {
-      const response = await fetch(`/api/pots/${slug}/contributions`)
+      const baseUrl = window.location.origin
+      const response = await fetch(`${baseUrl}/api/pots/${slug}/contributions`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-cache',
+        credentials: 'same-origin',
+      })
       if (response.ok) {
         const data = await response.json()
         setContributions(data.contributions || [])
@@ -141,7 +167,8 @@ export default function PotPage() {
     setContributing(true)
     setError('') // Clear previous errors
     try {
-      const response = await fetch(`/api/pots/${slug}/contribute`, {
+      const baseUrl = window.location.origin
+      const response = await fetch(`${baseUrl}/api/pots/${slug}/contribute`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -151,6 +178,8 @@ export default function PotPage() {
           display_name: displayName || null,
           is_anonymous: isAnonymous
         }),
+        cache: 'no-cache',
+        credentials: 'same-origin',
       })
 
       if (!response.ok) {
@@ -179,7 +208,13 @@ export default function PotPage() {
       window.location.href = data.checkout_url
     } catch (err) {
       console.error('Contribution error:', err)
-      setError(err instanceof Error ? err.message : 'Erreur lors de la contribution')
+      
+      // Gestion spécifique des erreurs réseau
+      if (err instanceof TypeError && err.message.includes('NetworkError')) {
+        setError('Erreur de connexion réseau lors de la contribution. Veuillez vérifier votre connexion et réessayer.')
+      } else {
+        setError(err instanceof Error ? err.message : 'Erreur lors de la contribution')
+      }
     } finally {
       setContributing(false)
     }
